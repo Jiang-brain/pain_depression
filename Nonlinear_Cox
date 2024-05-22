@@ -1,0 +1,31 @@
+library(survival)
+library(rms)
+library(dplyr)
+library(Gmisc)
+library(splines)
+library(Greg)
+library(tidyverse)
+#0,1,2,3,4,5,6,7
+index=which(datas$pain==0.5)
+datas=datas[-index,]
+rm(index)
+dd <- datadist(datas) #为后续程序设定数据环境
+options(datadist='dd') #为后续程序设定数据环境
+
+fit<- cph(Surv(time, status) ~ rcs(pain,3) +age+gender+ethnicity+deprivation+income+university_education+
+  smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, data = datas)
+anova(fit)#test the significance of nolinear regression
+
+plotHR(fit, term="pain", xlab="pain",se=TRUE,
+       polygon_ci=TRUE,
+       col.term = "#0070b9",
+       col.se = "#DEEBF7BB",
+       lwd.term=2,
+       lty.term = 1,
+       ylog=FALSE,
+       alpha=0.05,#alpha level, 95%
+       cex=1,
+       axes = TRUE,
+       plot.bty="l", xlim=c(0,8),ylim=c(0,6),rug="density")
+Pre0 <-rms::Predict(fit,pain,fun=exp,type="predictions",ref.zero=TRUE,conf.int = 0.95,digits=2)
+#write.csv(Pre0,'/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/datas/HR_nonlinear_1_7.csv')

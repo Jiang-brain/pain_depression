@@ -1,0 +1,12 @@
+result<- read.csv('/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/datas/interaction_pain_type.csv',header=T)
+row.names(result)=result$X
+result1=result[,2:9]
+result1=-log10(result1)
+
+library(ggcorrplot)
+library(RColorBrewer)
+mycolors<-(brewer.pal(9, "Blues"))[1:9]
+
+ggcorrplot(t(result1), method = "square",type = "full", outline.color = "white",show.diag = TRUE,tl.cex = 8,
+           lab='TRUE',lab_size=3,lab_col = 'darkgreen',
+           ggtheme = ggplot2::theme_classic)+ scale_fill_gradientn(limit = c(0,6.7),colours=mycolors)

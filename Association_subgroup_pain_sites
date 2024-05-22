@@ -1,0 +1,239 @@
+result<-data.frame(id=seq(1:50),HR_short=NA,P_short=NA,CI_short=NA,HR_chronic=NA,P_chronic=NA,CI_chronic=NA)
+row.names(result)=c('Age category','Middle age','Older','Sex','Females','Males','Race','Ethnic minorities','White','Deprivation','Lower','Middle','Higher',
+                    'Income','Unknown','<£18000','£18000-£30999','£31000-£51999','£52000-£100000','>£100000','Education','Less than college','Above College',
+                    'Smoking status','Never','Previous','Current','Alcohol intake frequency','Daily or almost daily','3-4 times/week','1-2 times/week','1-3 times/month','Special occasions only','Alcohol_Never',
+                    'Sedentary behavior','0-4 hours/day','>4 hours/day','Vascular history','No','Yes','Cancer history','cancer_No','cancer_Yes',
+                    'BMI category','Normal weight','Overweight','Obese','Diabetes','Diabetes_No','Diabetes_Yes')
+for (pain_status in c(1:2)) {
+  datas$pain=pain_duration$neck_shoulder##########pain type
+  datas$pain=factor(datas$pain)
+  
+  temp_data <- subset(datas, pain==0|pain==pain_status)
+  temp_data$pain=factor(temp_data$pain)
+  fit_no_interac <- coxph(Surv(time, status) ~ pain+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  
+  ##age
+  fit_interaction<- coxph(Surv(time, status) ~ pain*age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[1,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:age+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1,2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+1,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+1,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+1,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##sex
+  fit_interaction<- coxph(Surv(time, status) ~ pain*gender+age+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[4,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:gender+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1,2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+4,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+4,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+4,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##race
+  fit_interaction<- coxph(Surv(time, status) ~ pain*ethnicity+age+gender+deprivation+income+university_education+smoking+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[7,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:ethnicity+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1,2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+7,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+7,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+7,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##deprivation
+  fit_interaction<- coxph(Surv(time, status) ~ pain*deprivation+age+gender+ethnicity+income+university_education+smoking+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[10,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:deprivation+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:3)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+10,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-3+i,'exp(coef)']),2)
+    result[i+10,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-3+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-3+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-3+i,'upper .95'],2)
+    result[i+10,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##income
+  fit_interaction<- coxph(Surv(time, status) ~ pain*income+age+gender+ethnicity+deprivation+university_education+smoking+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[14,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:income+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:6)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+14,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-6+i,'exp(coef)']),2)
+    result[i+14,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-6+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-6+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-6+i,'upper .95'],2)
+    result[i+14,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##education
+  fit_interaction<- coxph(Surv(time, status) ~ pain*university_education+age+gender+ethnicity+deprivation+income+smoking+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[21,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:university_education+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+21,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+21,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+21,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##smoking
+  fit_interaction<- coxph(Surv(time, status) ~ pain*smoking+age+gender+ethnicity+income+university_education+deprivation+alcohol+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[24,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:smoking+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:3)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+24,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-3+i,'exp(coef)']),2)
+    result[i+24,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-3+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-3+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-3+i,'upper .95'],2)
+    result[i+24,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##alcohol
+  fit_interaction<- coxph(Surv(time, status) ~ pain*alcohol+age+gender+ethnicity+deprivation+university_education+smoking+income+
+                            sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[28,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:alcohol+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:6)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+28,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-6+i,'exp(coef)']),2)
+    result[i+28,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-6+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-6+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-6+i,'upper .95'],2)
+    result[i+28,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##sedentary
+  fit_interaction<- coxph(Surv(time, status) ~ pain*sedentary+age+gender+ethnicity+deprivation+income+smoking+alcohol+university_education+
+                            vascular_history+cancer+obesity+diabetes,data = temp_data)
+  result[35,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:sedentary+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+35,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+35,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+35,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##vascular history
+  fit_interaction<- coxph(Surv(time, status) ~ pain*vascular_history+age+gender+ethnicity+deprivation+income+smoking+alcohol+university_education+
+                            sedentary+cancer+obesity+diabetes,data = temp_data)
+  result[38,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:vascular_history+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+38,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+38,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+38,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##cancer history
+  fit_interaction<- coxph(Surv(time, status) ~ pain*cancer+age+gender+ethnicity+deprivation+income+smoking+alcohol+university_education+
+                            sedentary+vascular_history+obesity+diabetes,data = temp_data)
+  result[41,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:cancer+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+41,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+41,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+41,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##bmi category
+  fit_interaction<- coxph(Surv(time, status) ~ pain*obesity+age+gender+ethnicity+deprivation+income+smoking+alcohol+university_education+
+                            sedentary+vascular_history+cancer+diabetes,data = temp_data)
+  result[44,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:obesity+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:3)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+44,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-3+i,'exp(coef)']),2)
+    result[i+44,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-3+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-3+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-3+i,'upper .95'],2)
+    result[i+44,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  ##diabetes
+  fit_interaction<- coxph(Surv(time, status) ~ pain*diabetes+age+gender+ethnicity+deprivation+income+smoking+alcohol+university_education+
+                            sedentary+vascular_history+cancer+obesity,data = temp_data)
+  result[48,3*pain_status]=signif(anova(fit_no_interac,fit_interaction,test="Chisq")$`Pr(>|Chi|)`[2],3)
+  rm(fit_interaction)
+  fit1<- coxph(Surv(time, status) ~ pain:diabetes+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+
+                 sedentary+vascular_history+cancer+obesity+diabetes,data = temp_data)
+  for (i in c(1:2)) {
+    nrow_summary<-nrow(summary(fit1)$conf.int)
+    result[i+48,3*pain_status-1]=round((summary(fit1)$conf.int[nrow_summary-2+i,'exp(coef)']),2)
+    result[i+48,3*pain_status]=signif((summary(fit1)$coefficients[nrow_summary-2+i,'Pr(>|z|)']),3)
+    lower=round(summary(fit1)$conf.int[nrow_summary-2+i,'lower .95'],2)
+    upper=round(summary(fit1)$conf.int[nrow_summary-2+i,'upper .95'],2)
+    result[i+48,3*pain_status+1]=paste('(',lower,'-',upper,')',sep ='')
+    rm(lower,upper,nrow_summary)
+  }
+  rm(i,fit1)
+  rm(temp_data)
+}
+#write.csv(result,'/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/datas/subgroup_hr_body.csv')

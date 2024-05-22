@@ -1,0 +1,81 @@
+data=data.frame(status=data_censoring$label,time=data_censoring$censoring,
+                age=age,gender=gender,sites=sites,ethnicity=ethnicity,vascular_history=vascular_history,cancer=cancer,
+                university_education=university_education,deprivation=deprivation,income=income,diabetes=diabetes,
+                sedentary=sedentary,smoking=smoking,alcohol=alcohol,obesity=obesity)
+rm(age, gender,alcohol,bmi,central_obesity,deprivation,diabetes,ethnicity,hdl_cholesterol,hypertension,income,sleep,sedentary,
+   sites,smoking,triglycerides,university_education,whr,data_censoring,metabolic_syndrome,obesity,cancer,vascular_history)
+
+
+data$ethnicity=factor(data$ethnicity)
+data$university_education=factor(data$university_education)
+data$gender=factor(data$gender)
+data$income=factor(data$income)
+data$alcohol=factor(data$alcohol)
+data$smoking=factor(data$smoking)
+data$obesity=factor(data$obesity)
+data$deprivation=factor(data$deprivation)
+data$sedentary=factor(data$sedentary)
+data$vascular_history=factor(data$vascular_history)
+data$cancer=factor(data$cancer)
+data$diabetes=factor(data$diabetes)
+
+
+data$pain=rowSums(pain_duration[,1:7]==2,na.rm = TRUE)#the number of chronic pain sites
+index_more_5=which(data$pain>=5)#merge sites>=5 as 5
+data$pain[index_more_5]=5
+rm(index_more_5)
+pain_sum=rowSums(pain_duration[,1:7],na.rm = TRUE)
+index_short=which(data$pain==0&pain_sum!=0)#not chronic pain, but have pain signs
+data$pain[index_short]=0.5
+rm(index_short,pain_sum)
+index_na=which(rowSums(is.na(pain_duration))==8)### NA values, NOo value for any of the 8 sites
+data$pain[index_na]=NA
+rm(index_na)
+
+######################################do not run this code when running the analysis for each single pain site
+index_body_pain=which(pain_duration$body>0)
+data$pain[index_body_pain]=NA##remove pain all over the body
+rm(index_body_pain)
+######################################do not run this code when running the analysis for each single pain site
+
+############# retain complete data
+number_na<-rowSums(is.na(data))
+index_nonNA<-which(number_na==0)
+datas<-data[index_nonNA,]
+pain_duration=pain_duration[index_nonNA,]
+inflammation_biomarker=inflammation_biomarker[index_nonNA,]
+#phq_9=phq_9[index_nonNA,]
+rm(number_na,index_nonNA)
+
+#can exclude participants younger than 65 years
+index_included=which(datas$age>=40)
+datas=datas[index_included,]
+pain_duration=pain_duration[index_included,]
+inflammation_biomarker=inflammation_biomarker[index_included,]
+#phq_9=phq_9[index_included,]
+datas$sites=factor(datas$sites)
+rm(index_included)
+#
+index_old=which(datas$age>=65)#establish separate models using 60 as cutpoint
+index_young=which(datas$age<65)
+datas$age[index_old]=1
+datas$age[index_young]=0
+datas$age=factor(datas$age)
+rm(index_old,index_young)
+
+index_2year_lanmark=which(!(datas$time<365*5&datas$status==1))
+datas=datas[index_2year_lanmark,]
+pain_duration=pain_duration[index_2year_lanmark,]
+inflammation_biomarker=inflammation_biomarker[index_2year_lanmark,]
+#phq_9=phq_9[index_2year_lanmark,]
+rm(index_2year_lanmark)
+
+##########pain category, single-site pain, multiple-sizte pain, short-term pain
+index_multiple=which(datas$pain>=2)
+datas$pain[index_multiple]=2
+rm(index_multiple)
+
+datas$pain=factor(datas$pain)
+datas$pain = relevel(datas$pain, ref = "0")
+
+

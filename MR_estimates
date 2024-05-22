@@ -1,0 +1,96 @@
+library(data.table)
+library(TwoSampleMR)
+headache_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/headache2_f6159_WhiteBritishPCs_addPrunedRels_noPGC_noGenScot_v2.2017-08-30.bgenie.gz",header=T)
+colnames(headache_pain)=c('chr','rsid','pos','a_0','a_1','af','info','beta','se','t','p')
+headache_pain$p=10^(-headache_pain$p)
+headache_pain=subset(headache_pain,p<5e-8)
+facial_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/facialpain2_f6159_v3.bgenie.txt.gz",header=T)
+facial_pain=subset(facial_pain,p<5e-6)
+neck_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/neckshoulderpain2_f6159_v3.bgeniemodify.txt.gz",header=T)
+neck_pain=subset(neck_pain,p<5e-8)#try 5e-6
+back_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/backpain2_f6159.2018-02-09.bgenie.gz",header=T)
+colnames(back_pain)[6]='af'
+back_pain=subset(back_pain,p<5e-6)#5e-8 ok
+stomache_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/abdominalpain2_f6159_v3.bgenie.txt.gz",header=T)
+stomache_pain=subset(stomache_pain,p<5e-6)
+hip_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/hippain2_f6159_v3.bgenie.txt.gz",header=T)
+hip_pain=subset(hip_pain,p<5e-6)
+knee_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/kneepain2_f6159_v3_1812.bgenie.txt.gz",header=T)
+knee_pain=subset(knee_pain,p<5e-6)#5e-8 can generate insignificant results only 2 left
+general_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/painalloverbody_f6159_v3.bgenie.txt.gz",header=T)
+general_pain=subset(general_pain,p<5e-6)#5e-8,1 left
+chronic_pain=fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/chronic_pain-bgen.stats.gz",header=T)
+chronic_pain=subset(chronic_pain,P_BOLT_LMM_INF<5e-8)
+colnames(chronic_pain)[1]='rsid'
+colnames(chronic_pain)[5]='a_0'
+colnames(chronic_pain)[6]='a_1'
+colnames(chronic_pain)[7]='af'
+colnames(chronic_pain)[11]='beta'
+colnames(chronic_pain)[12]='se'
+colnames(chronic_pain)[14]='p'
+exposures=list(headache_pain,facial_pain,neck_pain,back_pain,stomache_pain,hip_pain,knee_pain,general_pain,chronic_pain)
+rm(headache_pain,facial_pain,neck_pain,back_pain,stomache_pain,hip_pain,knee_pain,general_pain,chronic_pain)
+
+results=data.frame(id=c(1:45),p_mr=NA,or_mr=NA,lower_mr=NA,upper_mr=NA,q_hetegeneity=NA,p_hetegeneity=NA,egger_intercept=NA,p_pleiotropy=NA,nsnp=NA)
+row.names(results)=paste(rep(c("MR Eagger","IVW-fixed","IVW-random","Simple median","Weighted median"),9),
+                         c(rep(1,5),rep(2,5),rep(3,5),rep(4,5),rep(5,5),rep(6,5),rep(7,5),rep(8,5),rep(9,5)))
+
+
+###################################################mdd pgc no ukb and 23andMe###################################################
+for (i in c(1:9)) {
+  exposure=exposures[[i]]
+  write.csv(exposure,'/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library/TwoSampleMR/exposure.csv')
+  exposure<-system.file('exposure.csv',package = "TwoSampleMR")
+  exposure_exp_dat<-read_exposure_data(filename=exposure,sep=",",snp_col = "rsid",beta_col = "beta",
+                                       se_col = "se",
+                                       effect_allele_col = "a_0",
+                                       other_allele_col = "a_1",
+                                       eaf_col = "af",
+                                       pval_col = "p")
+  options(ieugwasr_api = 'gwas-api.mrcieu.ac.uk/')
+  exposure_dat_clumped<-clump_data(exposure_exp_dat,clump_kb = 10000,clump_r2 = 0.001,clump_p1 = 1,clump_p2 = 1,pop="EUR")
+  rm(exposure,exposure_exp_dat)
+  
+  outcome<-fread('/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/MDD/daner_pgc_mdd_meta_w2_no23andMe_rmUKBB.gz',header=T)
+  #outcome<-fread('/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/MR/MDD/daner_MDDwoBP_20201001_2015iR15iex_HRC_MDDwoBP_iPSYCH2015i_Wray_FinnGen_MVPaf_2_HRC_MAF01.gz',header=T)
+  c<-merge(exposure_dat_clumped,outcome,by.x = "SNP",by.y = "SNP")
+  c$OR=log(c$OR)
+  write.csv(c,'/Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/library/TwoSampleMR/outcome.csv')
+  rm(c)
+  outcome<-system.file('outcome.csv',package = "TwoSampleMR")
+  outcome_dat<-read_outcome_data(snps=exposure_dat_clumped$SNP,
+                                 filename=outcome,sep=",",snp_col = "SNP",beta_col = "OR",
+                                 se_col = "SE",
+                                 effect_allele_col = "A1",
+                                 other_allele_col = "A2",
+                                 pval_col = "P")
+  dat<-harmonise_data(exposure_dat =  exposure_dat_clumped, outcome_dat=outcome_dat)
+  retained_index=which(dat$mr_keep==TRUE)
+  dat<-dat[retained_index,]
+  
+  rm(exposure_dat_clumped,outcome_dat,outcome,retained_index)
+  result=mr(dat,method_list = c("mr_egger_regression_bootstrap","mr_ivw_fe","mr_ivw_mre","mr_simple_median","mr_weighted_median"))
+  results$p_mr[(5*i-4):(5*i)]=signif(result$pval,3)
+  
+  results$nsnp[(5*i)]=result$nsnp[1]
+  
+  or=generate_odds_ratios(result)
+  results$or_mr[(5*i-4):(5*i)]=round(or$or,2)
+  
+  results$lower_mr[(5*i-4):(5*i)]=round(or$or_lci95,2)
+  results$upper_mr[(5*i-4):(5*i)]=round(or$or_uci95,2)
+  
+  pleitropy<-mr_pleiotropy_test(dat)
+  results$p_pleiotropy[5*i]=signif(pleitropy$pval,3)
+  results$egger_intercept[5*i]=signif(pleitropy$egger_intercept,3)
+  
+  hetegeneity<-mr_heterogeneity(dat)
+  results$p_hetegeneity[5*i]=signif(hetegeneity$Q_pval[1],3)
+  results$p_hetegeneity[5*i-1]=signif(hetegeneity$Q_pval[2],3)
+  results$q_hetegeneity[5*i]=hetegeneity$Q[1]
+  results$q_hetegeneity[5*i-1]=hetegeneity$Q[2]
+  rm(or,pleitropy,hetegeneity,result,dat)
+}
+#write.csv(results,'/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/datas/MR_results.csv')
+result =mr(dat, method_list = c("mr_egger_regression","mr_ivw_mre","mr_ivw_fe","mr_egger_regression_bootstrap",
+                                "mr_simple_median","mr_weighted_median","mr_simple_mode","mr_weighted_mode"))

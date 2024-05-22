@@ -1,0 +1,77 @@
+  library(data.table)
+  first_diagnosis<-fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/pain_data.csv",select=c('eid','53-0.0',
+                         '130894-0.0','130895-0.0','130896-0.0','130897-0.0'),
+                         header = T,sep=",")
+  first_diagnosis=data.frame(first_diagnosis)
+  diagnosis_depression<-data.frame(id=first_diagnosis$eid,diagnosis_date=as.Date(NA),source=NA,time_interval=NA,attending_date=first_diagnosis$X53.0.0)
+  
+  diagnosis_depression$diagnosis_date=pmin(first_diagnosis$X130894.0.0,first_diagnosis$X130896.0.0,na.rm = TRUE)
+  
+  index_F32=which(first_diagnosis$X130894.0.0==diagnosis_depression$diagnosis_date)
+  index_F33=which(first_diagnosis$X130896.0.0==diagnosis_depression$diagnosis_date)
+  diagnosis_depression$source[index_F32]=first_diagnosis$X130895.0.0[index_F32]
+  diagnosis_depression$source[index_F33]=first_diagnosis$X130897.0.0[index_F33]
+  diagnosis_depression$time_interval=diagnosis_depression$diagnosis_date-diagnosis_depression$attending_date
+  rm(first_diagnosis,index_F32,index_F33)
+  
+  index_nonNan=which(is.na(diagnosis_depression$diagnosis_date)==FALSE)
+  diagnosis_depression=diagnosis_depression[index_nonNan,]
+  rm(index_nonNan)
+  
+  
+  ##### max date of icd record (use to determine the censored date)
+  censoring_date=max(diagnosis_depression$diagnosis_date,na.rm = TRUE)
+  
+  
+  ######## lost of follow-up
+  library(data.table)
+  datas<-fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/pain_data.csv",header = T,sep=",")
+  datas=data.frame(datas)
+  lost_follow_up<-data.frame(id=datas$eid,lost_reason=datas$X190.0.0,lost_date=datas$X191.0.0,attending_date=datas$X53.0.0)
+  rm(datas)
+  index_noNaN<-which(is.na(lost_follow_up$lost_date)==FALSE)
+  lost_follow_up<-lost_follow_up[index_noNaN,]
+  lost_follow_up$lost_time_interval<-lost_follow_up$lost_date-lost_follow_up$attending_date
+  rm(index_noNaN)
+  
+  
+  ################ censoring data, days between the date attending the assessment center and the date recording information
+  library(data.table)
+  datas<-fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/pain_data.csv",header = T,sep=",")
+  datas=data.frame(datas)
+  data_censoring=data.frame(id=datas$eid,attending_date=datas$X53.0.0)
+  data_censoring$censoring=rep(as.IDate(censoring_date),nrow(data_censoring))-data_censoring$attending_date
+  rm(censoring_date)
+  rm(datas)
+  
+  #incorporate lost information into the data_censoring table
+  data_censoring$lost=NA
+  data_censoring$lost_reason=NA
+  lost_index=match(lost_follow_up$id,data_censoring$id)
+  data_censoring$lost[lost_index]=lost_follow_up$lost_time_interval
+  data_censoring$lost_reason[lost_index]=lost_follow_up$lost_reason
+  rm(lost_index,lost_follow_up)
+  
+  #incorporate information of diagnosis into the data_censoring table
+  data_censoring$diagnosis=NA
+  data_censoring$source=NA
+  diagnosis_index=match(diagnosis_depression$id,data_censoring$id)
+  data_censoring$diagnosis[diagnosis_index]=diagnosis_depression$time_interval
+  data_censoring$source[diagnosis_index]=diagnosis_depression$source
+  rm(diagnosis_index,diagnosis_depression)
+  
+  
+  ######calculate censoring days and label, can modify when need to record the participants with diagnosis before enrollment
+  #diagnosis
+  data_censoring$label=0
+  index_diagnosis=which(data_censoring$diagnosis>0)
+  data_censoring$label[index_diagnosis]=1
+  data_censoring$censoring[index_diagnosis]=data_censoring$diagnosis[index_diagnosis]
+  index_diagnosis=which(data_censoring$diagnosis<=0)# remove subjects with diagnosis before enrollment
+  data_censoring$label[index_diagnosis]=NA######diagnosis before baseline
+  rm(index_diagnosis)
+  
+  #lost follow-up
+  index_lost_wo_diagnosis=which(is.na(data_censoring$lost)==FALSE & data_censoring$label==0)#being lost after have a diagnosis
+  data_censoring$censoring[index_lost_wo_diagnosis]=pmin(data_censoring$censoring[index_lost_wo_diagnosis],data_censoring$lost[index_lost_wo_diagnosis])
+  rm(index_lost_wo_diagnosis)

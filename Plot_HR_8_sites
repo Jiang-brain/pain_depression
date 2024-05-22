@@ -1,0 +1,23 @@
+library(forestplot)
+library(dplyr)
+library(ggthemes)
+#result1=result[rev(c(5,6,7,8,11,12,13,14,9,10,1,2,3,4,15,16)),]
+#result$P_value=p.adjust(result$P_value,method='bonferroni',n=nrow(result))
+result1=result
+
+result_HR <- tibble(HR  = result1$HR, pain_type = row.names(result1),p_value=as.character(result1$P_value),ci=result1$CI,
+                    lower = result1$lower,upper = result1$upper,participants=as.character(result1$Participants),
+                    events=as.character(result1$Events))
+#rm(result)
+header <- tibble(pain_type='pain_type',p_value='P value',ci='HR (95% CI)',participants='Participants',events='Events')
+combined_data <- bind_rows(header,result_HR)
+rm(header,result_HR)
+combined_data %>% 
+  forestplot(labeltext = c(pain_type, ci, p_value, participants,events),
+             mean=HR,
+             graph.pos =3,boxsize=0.38,zero=1,
+             is.summary = FALSE,clip = c(1,3.8), xlog = FALSE,graphwidth = unit(.28,"npc"),
+             col = fpColors(box = "#3c5a66",line = "black",summary = "grey"),
+             mar=unit(rep(1.0, times = 4), "cm"),
+             txt_gp=fpTxtGp(label=gpar(cex=0.8), ticks=gpar(cex=0.6), xlab=gpar(cex = 0.8), title=gpar(cex = 0.8)),
+             xlab = "HR (95% CI)",lwd.xaxis = 1.0)

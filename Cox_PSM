@@ -1,0 +1,164 @@
+result=data.frame(matrix(nrow=ncol(pain_duration),ncol=14))
+row.names(result)=c(colnames(pain_duration))
+colnames(result)=c('HR_short','lower_1','upper_1','CI_1','P_1','N_1','Events_1','HR_chronic','lower_2','upper_2','CI_2','P_2','N_1','Events_1')
+
+#compare characteristics
+summary_information=data.frame(matrix(ncol = 2*ncol(pain_duration), nrow = 15))
+colnames(summary_information)=c(paste(colnames(pain_duration),'1'),paste(colnames(pain_duration),'2'))
+row.names(summary_information)=c('Number of subjects','Number of matched subjects','Age category','Sex','Race','Deprivation','Income','Education','Smoking status',
+                                 'Alcohol intake frequency','Sedentary behavior','Vascular history','Cancer history','BMI category','Diabetes')
+
+for (index_pain in c(1:ncol(pain_duration))) {
+  datas$pain_site=pain_duration[,index_pain]
+  
+  for (pain_short_chronic in c(1,2)) {
+      index=which(datas$pain_site==0|datas$pain_site==pain_short_chronic)
+      temp_datas=datas[index,]
+      rm(index)
+      index=which(temp_datas$pain_site==2)
+      temp_datas$pain_site[index]=1
+      rm(index)
+      temp_datas$pain_site=factor(temp_datas$pain_site)
+      row.names(temp_datas)=c(1:nrow(temp_datas))
+      if (index_pain==1&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','university_education','sedentary','vascular_history','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==1&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('ethnicity','smoking','sedentary','vascular_history','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==2&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         data = temp_datas)
+      }else if (index_pain==2&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('ethnicity','cancer'),data = temp_datas)
+      }else if (index_pain==3&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','university_education','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==3&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','gender','ethnicity','university_education','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==4&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','ethnicity','university_education','vascular_history','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==4&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','gender','ethnicity','university_education','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==5&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','gender','university_education','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==5&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','ethnicity','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==6&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('ethnicity','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==6&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('ethnicity','university_education','smoking','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==7&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('age','ethnicity','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==7&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('ethnicity','university_education','smoking','alcohol','cancer','diabetes'),data = temp_datas)
+      }else if (index_pain==8&pain_short_chronic==1){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         data = temp_datas)
+      }else if (index_pain==8&pain_short_chronic==2){
+        m.out <- matchit(pain_site ~ age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, 
+                         method = "nearest",distance = "glm", link = "logit",caliper = 0.002,
+                         exact=c('ethnicity','cancer'),data = temp_datas)
+      }
+      summary(m.out)
+      match_index=m.out$match.matrix
+      index_na<-which(is.na(match_index)==FALSE)
+      controlled_index=as.numeric(match_index[index_na,1])
+      treated_index=as.numeric(row.names(match_index)[index_na])
+      control_data=temp_datas[controlled_index,]
+      treat_data=temp_datas[treated_index,]
+      rm(controlled_index,treated_index,m.out,match_index,index_na)
+      
+      new_data=rbind(control_data,treat_data)
+      hr <- coxph(Surv(time, status) ~ pain_site,data = new_data)
+      
+      ##write results
+      coeff<-summary(hr)
+      result[index_pain,1+(pain_short_chronic-1)*7]=round(coeff$coefficients['pain_site1','exp(coef)'],2)
+      lower=round(coeff$conf.int['pain_site1','lower .95'],2)
+      upper=round(coeff$conf.int['pain_site1','upper .95'],2)
+      result[index_pain,2+(pain_short_chronic-1)*7]=lower
+      result[index_pain,3+(pain_short_chronic-1)*7]=upper
+      result[index_pain,4+(pain_short_chronic-1)*7]=paste(result[index_pain,1+(pain_short_chronic-1)*7],' (',lower,'-',upper,')',sep='')
+      result[index_pain,5+(pain_short_chronic-1)*7]=signif(coeff$coefficients['pain_site1','Pr(>|z|)'],3)
+      result[index_pain,6+(pain_short_chronic-1)*7]=nrow(new_data)/2
+      result[index_pain,7+(pain_short_chronic-1)*7]=length(which(new_data$status==1&new_data$pain_site==1))
+      rm(lower,upper,coeff,hr,new_data)
+      
+      
+      ##compare difference
+      {
+        summary_information[1,index_pain+(pain_short_chronic-1)*8]=length(which(temp_datas$pain_site==1))
+        #N
+        summary_information[2,index_pain+(pain_short_chronic-1)*8]=nrow(control_data)
+        #age
+        a<-t(matrix(c(tabulate(treat_data$age),tabulate(control_data$age)),nrow=2,ncol=2))
+        summary_information[3,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #sex
+        a<-t(matrix(c(tabulate(treat_data$gender),tabulate(control_data$gender)),nrow=2,ncol=2))
+        summary_information[4,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #race
+        a<-t(matrix(c(tabulate(treat_data$ethnicity),tabulate(control_data$ethnicity)),nrow=2,ncol=2))
+        summary_information[5,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #deprivation
+        a<-t(matrix(c(tabulate(treat_data$deprivation),tabulate(control_data$deprivation)),nrow=3,ncol=2))
+        summary_information[6,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #income
+        a<-t(matrix(c(tabulate(treat_data$income),tabulate(control_data$income)),nrow=6,ncol=2))
+        summary_information[7,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #education
+        a<-t(matrix(c(tabulate(treat_data$university_education),tabulate(control_data$university_education)),nrow=2,ncol=2))
+        summary_information[8,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #smoking
+        a<-t(matrix(c(tabulate(treat_data$smoking),tabulate(control_data$smoking)),nrow=3,ncol=2))
+        summary_information[9,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #alcohol
+        a<-t(matrix(c(tabulate(treat_data$alcohol),tabulate(control_data$alcohol)),nrow=6,ncol=2))
+        summary_information[10,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #sedentary
+        a<-t(matrix(c(tabulate(treat_data$sedentary),tabulate(control_data$sedentary)),nrow=2,ncol=2))
+        summary_information[11,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #vascular history
+        a<-t(matrix(c(tabulate(treat_data$vascular_history),tabulate(control_data$vascular_history)),nrow=2,ncol=2))
+        summary_information[12,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #cancer history
+        a<-t(matrix(c(tabulate(treat_data$cancer),tabulate(control_data$cancer)),nrow=2,ncol=2))
+        summary_information[13,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #bmi
+        a<-t(matrix(c(tabulate(treat_data$obesity),tabulate(control_data$obesity)),nrow=3,ncol=2))
+        summary_information[14,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        #diabetes
+        a<-t(matrix(c(tabulate(treat_data$diabetes),tabulate(control_data$diabetes)),nrow=2,ncol=2))
+        summary_information[15,index_pain+(pain_short_chronic-1)*8]=signif(chisq.test(a)$p.value,3)
+        rm(a)
+      }
+      rm(control_data,treat_data,temp_datas)
+  }
+  rm(pain_short_chronic)
+}
+rm(index_pain)

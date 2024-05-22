@@ -37,3 +37,45 @@ for (i in 1:4){
   result$Events[i]=length(which(datas$pain==unique_pain[i]&(datas$status==1)))
 }
 rm(unique_pain)
+
+
+
+result=data.frame(matrix(nrow=2*ncol(pain_duration),ncol=7))
+row.names(result)=c(paste(colnames(pain_duration),'1'),paste(colnames(pain_duration),'2'))
+colnames(result)=c('HR','lower','upper','CI','P_value','Participants','Events')
+
+for (index_pain in c(1:ncol(pain_duration))) {
+  datas$pain_site=pain_duration[,index_pain]
+  datas$pain_site=factor(datas$pain_site)
+  hr <- coxph(Surv(time, status) ~ pain_site+age+gender+ethnicity+deprivation+income+university_education+
+                     smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes, data = datas)
+  
+  ##pain_1, short-term pain
+  coeff<-summary(hr)
+  result$HR[index_pain]=round(coeff$coefficients['pain_site1','exp(coef)'],2)
+  result$P_value[index_pain]=signif(coeff$coefficients['pain_site1','Pr(>|z|)'],3)
+  lower=round(coeff$conf.int['pain_site1','lower .95'],2)
+  upper=round(coeff$conf.int['pain_site1','upper .95'],2)
+  result$lower[index_pain]=lower
+  result$upper[index_pain]=upper
+  result$CI[index_pain]=paste(result$HR[index_pain],' (',lower,'-',upper,')',sep='')
+  result$Participants[index_pain]=length(which(datas$pain_site==1))
+  result$Events[index_pain]=length(which(datas$pain_site==1&(datas$status==1)))
+  rm(lower,upper)
+  print(c(length(which(datas$pain_site==0)),length(which(datas$pain_site==0&(datas$status==1)))))
+  ##pain_2, chronic pain
+  result$HR[index_pain+8]=round(coeff$coefficients['pain_site2','exp(coef)'],2)
+  result$P_value[index_pain+8]=signif(coeff$coefficients['pain_site2','Pr(>|z|)'],3)
+  lower=round(coeff$conf.int['pain_site2','lower .95'],2)
+  upper=round(coeff$conf.int['pain_site2','upper .95'],2)
+  result$lower[index_pain+8]=lower
+  result$upper[index_pain+8]=upper
+  result$CI[index_pain+8]=paste(result$HR[index_pain+8],' (',lower,'-',upper,')',sep='')
+  result$Participants[index_pain+8]=length(which(datas$pain_site==2))
+  result$Events[index_pain+8]=length(which(datas$pain_site==2&(datas$status==1)))
+  
+  rm(hr,lower,upper,coeff)
+}
+rm(index_pain)
+result=result[c(1,9,2,10,3,11,4,12,5,13,6,14,7,15,8,16),]
+PF_events=length(which(datas$pain_site==0&datas$status==1))

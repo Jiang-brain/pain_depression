@@ -1,0 +1,7 @@
+library(ggplot2)
+behavior_order=order((result$HR))
+ggplot(result, aes(x=row.names(result), y=HR)) +
+  geom_pointrange(aes(ymin=lower, ymax=upper))+
+  geom_point(data=result, mapping=aes(x=row.names(result), y=HR,fill=row.names(result)), size=2.6, shape=21,stroke = 0.9)+
+  scale_x_discrete(limits=row.names(result)[behavior_order])+
+  theme_classic()+theme(axis.text.x = element_text(angle = 45,vjust = 0.9,hjust = 0.85))

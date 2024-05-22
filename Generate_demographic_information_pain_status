@@ -1,0 +1,106 @@
+index_short=which(datas$pain==0.5)
+index_single=which(datas$pain==1)
+index_multiple=which(datas$pain==2)
+datas$pain[index_short]=1
+datas$pain[index_single]=2
+datas$pain[index_multiple]=3
+rm(index_short,index_single,index_multiple)
+
+summary_information=data.frame(matrix(ncol = 5, nrow = 49))
+colnames(summary_information)=c('Whole population','Pain free','Short-term pain','Single chronic pain','Multiple chronic pain')
+row.names(summary_information)=c('Total N','Age at baseline, years (mean, std)','Sex','Females','Males','Race','Ethnic minorities','White','Deprivation','Lower','Middle','Higher',
+                                 'Income','Unknown','<£18000','£18000-£30999','£31000-£51999','£52000-£100000','>£100000','Education','Less than college','Above College',
+                                 'Smoking status','Never','Previous','Current','Alcohol intake frequency','Daily or almost daily','3-4 times/week','1-2 times/week','1-3 times/month','Special occasions only','Alcohol_Never',
+                                 'Sedentary behavior','0-4 hours/day','>4 hours/day','Vascular history','No','Yes','Cancer history','cancer_No','cancer_Yes',
+                                 'BMI category','Normal weight','Overweight','Obese','Diabetes','diabetes_No','Diabetes_Yes')
+for (pain_status in c(10,0,1,2,3)) {
+  if (pain_status==10){
+    index_pain=c(1:nrow(datas))#10=whole samples
+    column_index=1
+  }else{
+    index_pain=which(datas$pain==pain_status)
+    column_index=pain_status+2
+  }
+  temp_datas=datas[index_pain,]
+  rm(index_pain)
+  #N
+  summary_information[1,column_index]=nrow(temp_datas)
+  #age,age is numeric
+  summary_information[2,column_index]=paste(round(mean(temp_datas$age),2),' (',round(sd(temp_datas$age),2),')',sep='')
+  #gender
+  for (i in c(1:2)) {
+    n_temp=length(which(temp_datas$gender==i-1))
+    summary_information[i+3,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #ethnicity
+  for (i in c(1:2)) {
+    n_temp=length(which(temp_datas$ethnicity==i-1))
+    summary_information[i+6,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #deprivation
+  for (i in c(1:3)) {
+    n_temp=length(which(temp_datas$deprivation==i-1))
+    summary_information[i+9,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #income
+  for (i in c(1:6)) {
+    n_temp=length(which(temp_datas$income==i-1))
+    summary_information[i+13,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #education
+  for (i in c(1:2)) {
+    n_temp=length(which(temp_datas$university_education==i-1))
+    summary_information[i+20,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #smoking
+  for (i in c(1:3)) {
+    n_temp=length(which(temp_datas$smoking==i-1))
+    summary_information[i+23,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #alcohol
+  for (i in c(1:6)) {
+    n_temp=length(which(temp_datas$alcohol==i))
+    summary_information[i+27,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #sedentary
+  for (i in c(1:2)) {
+    n_temp=length(which(temp_datas$sedentary==i-1))
+    summary_information[i+34,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #vascular_history
+  for (i in c(1:2)) {
+    n_temp=length(which(temp_datas$vascular_history==i-1))
+    summary_information[i+37,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #cancer_history
+  for (i in c(1:2)) {
+    n_temp=length(which(temp_datas$cancer==i-1))
+    summary_information[i+40,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #bmi_category
+  for (i in c(1:3)) {
+    n_temp=length(which(temp_datas$obesity==i-1))
+    summary_information[i+43,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  #diabetes
+  for (i in c(1:2)) {
+    n_temp=length(which(temp_datas$diabetes==i-1))
+    summary_information[i+47,column_index]=paste(n_temp,' (',round(n_temp/nrow(temp_datas)*100,2),'%)',sep='')
+  }
+  rm(n_temp)
+  rm(temp_datas)
+  rm(i)
+}
+rm(column_index,pain_status)
+#write.csv(summary_information,'/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/datas/demographics_status.csv')

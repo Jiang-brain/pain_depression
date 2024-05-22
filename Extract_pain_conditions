@@ -1,0 +1,34 @@
+  library(data.table)
+  datas<-fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/pain_data.csv",header = T,sep=",")
+  datas=data.frame(datas)
+
+  temp_pain=datas$X6159.0.0
+  index_no_pain=which(temp_pain==-7)
+  index_not_answer=which(temp_pain==-3)
+  index_pain=which(temp_pain>0)
+  temp_pain[index_no_pain]=0
+  temp_pain[index_pain]=NA
+  temp_pain[index_not_answer]=NA
+  rm(index_no_pain,index_pain,index_not_answer)
+  
+  pain_duration=data.frame(headache=datas$X3799.0.0,
+                           facial=datas$X4067.0.0,
+                           neck_shoulder=datas$X3404.0.0,
+                           back=datas$X3571.0.0,
+                           stomach=datas$X3741.0.0,
+                           hip_pain=datas$X3414.0.0,
+                           knee=datas$X3773.0.0,
+                           body=datas$X2956.0.0)
+  
+  for (i in 1:ncol(pain_duration)){
+    chronic_pain=which((pain_duration[,i]==1))
+    short_pain=which((pain_duration[,i]==0))
+    not_answer=which((pain_duration[,i]<0))
+    index_no_pain=which(temp_pain==0)
+    pain_duration[chronic_pain,i]=2
+    pain_duration[short_pain,i]=1
+    pain_duration[not_answer,i]=NA
+    pain_duration[index_no_pain,i]=0
+    rm(chronic_pain,short_pain,not_answer,index_no_pain)
+  }
+  rm(i,temp_pain)

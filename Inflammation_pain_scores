@@ -1,0 +1,24 @@
+library(lmerTest)
+result_inflammation=data.frame(matrix(nrow=ncol(inflammation_biomarker),ncol=5))
+row.names(result_inflammation)=colnames(inflammation_biomarker)
+colnames(result_inflammation)=c('coeff','se','T_values','P_value','N')
+for (i in 1:ncol(inflammation_biomarker)) {
+  datas$inflammation=inflammation_biomarker[,i]
+  model <- lmer(scale(inflammation)~ scale(pain_score)+age+gender+ethnicity+deprivation+income+university_education+
+                  smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes
+                +(1|sites),data=datas)
+  coeff<-summary(model)$coefficients
+  result_inflammation$coeff[i]=round(coeff[2,1],3)
+  result_inflammation$se[i]=round(coeff[2,2],4)
+  result_inflammation$T_values[i]=round(coeff['scale(pain_score)','t value'],2)
+  result_inflammation$P_value[i]=signif(coeff[2,5],3)
+  number_na<-rowSums(is.na(datas))
+  result_inflammation$N[i]=length(which(number_na==0))
+  rm(model,coeff,number_na)
+}
+rm(i)
+result_inflammation$d = round(2*result_inflammation$coeff / sqrt(1 - result_inflammation$coeff^2),3)
+result_inflammation$d_se = round(2*result_inflammation$se / sqrt(1 - result_inflammation$se^2),4)
+result_inflammation$d_lower = result_inflammation$d-1.96*result_inflammation$d_se
+result_inflammation$d_upper = result_inflammation$d+1.96*result_inflammation$d_se
+#write.csv(result_inflammation,'/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/datas/pain_score_inflammation.csv')

@@ -1,0 +1,31 @@
+P_interaction=data.frame(matrix(ncol = ncol(pain_duration), nrow = 13))
+row.names(P_interaction)=c('Age','Sex','Race','Deprivation','Income','University_education','Smoking','Alcohol','Sedentary','Vascular','Cancer','Obesity','Diabetes')
+colnames(P_interaction)=colnames(pain_duration)
+
+for (index_pain in c(1:ncol(pain_duration))) {
+  datas$pain_site=pain_duration[,index_pain]
+  datas$pain_site=factor(datas$pain_site)
+
+  fit0<- coxph(Surv(time, status) ~ pain_site+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit1<- coxph(Surv(time, status) ~ pain_site*age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit2<- coxph(Surv(time, status) ~ pain_site*gender+age+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit3<- coxph(Surv(time, status) ~ pain_site*ethnicity+age+gender+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit4<- coxph(Surv(time, status) ~ pain_site*deprivation+age+gender+ethnicity+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit5<- coxph(Surv(time, status) ~ pain_site*income+age+gender+ethnicity+deprivation+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit6<- coxph(Surv(time, status) ~ pain_site*university_education+age+gender+ethnicity+deprivation+income+smoking+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit7<- coxph(Surv(time, status) ~ pain_site*smoking+age+gender+ethnicity+deprivation+income+university_education+alcohol+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit8<- coxph(Surv(time, status) ~ pain_site*alcohol+age+gender+ethnicity+deprivation+income+university_education+smoking+sedentary+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit9<- coxph(Surv(time, status) ~ pain_site*sedentary+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+vascular_history+cancer+obesity+diabetes,data = datas)
+  fit10<-coxph(Surv(time, status) ~ pain_site*vascular_history+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+cancer+obesity+diabetes,data = datas)
+  fit11<-coxph(Surv(time, status) ~ pain_site*cancer+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+obesity+diabetes,data = datas)
+  fit12<-coxph(Surv(time, status) ~ pain_site*obesity+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+diabetes,data = datas)
+  fit13<-coxph(Surv(time, status) ~ pain_site*diabetes+age+gender+ethnicity+deprivation+income+university_education+smoking+alcohol+sedentary+vascular_history+cancer+obesity,data = datas)
+  fit_models=list(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13)
+  rm(fit1,fit2,fit3,fit4,fit5,fit6,fit7,fit8,fit9,fit10,fit11,fit12,fit13)
+
+  for (i in c(1:13)) {
+    P_interaction[i,index_pain]=signif(anova(fit0,fit_models[[i]],test="Chisq")$`Pr(>|Chi|)`[2],3)
+  }
+  rm(i,fit0,fit_models)
+}
+#write.csv(P_interaction,'/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/datas/interaction_pain_type.csv')

@@ -1,0 +1,82 @@
+  datas1<-fread("/Users/andyjiang/OneDrive/rtjiang/G/working_data/2023-Pain/pain_data.csv",header = T,sep=",")
+  datas1=data.frame(datas1)
+  
+  ##########inflammation biomarkers
+  crp=log(datas1$X30710.0.0)#log transformation
+  
+  leukocyte=datas1$X30000.0.0
+  index_outlier=which(datas1$X30000.0.0==0)
+  leukocyte[index_outlier]=NA
+  rm(index_outlier)
+  index_outlier=which(leukocyte>16)
+  leukocyte[index_outlier]=16
+  #leukocyte=log(leukocyte)
+  rm(index_outlier)
+  
+  index=which(datas1$X30120.0.0==0)
+  datas1$X30120.0.0[index]=NA
+  rm(index)
+  index_outlier=which(datas1$X30120.0.0>5.5)
+  datas1$X30120.0.0[index_outlier]=5.5
+  lymphocyte=datas1$X30120.0.0
+  rm(index_outlier)
+  
+  lymphocyte_percentage=datas1$X30180.0.0
+  index_outlier=which(lymphocyte_percentage>60)
+  lymphocyte_percentage[index_outlier]=60
+  rm(index_outlier)
+  
+  monocyte=datas1$X30130.0.0
+  index_outlier=which(datas1$X30130.0.0>1.5)
+  monocyte[index_outlier]=1.5
+  #monocyte=log(monocyte+1)
+  rm(index_outlier)
+  
+  monocyte_percentage=datas1$X30190.0.0 # can also use log transformation
+  index_outlier=which(monocyte_percentage>18)
+  monocyte_percentage[index_outlier]=18
+  rm(index_outlier)
+  
+  neutrophill=datas1$X30140.0.0
+  index_outlier=which(neutrophill>10)
+  neutrophill[index_outlier]=10
+  index_zero=which(neutrophill==0)
+  neutrophill[index_zero]=NA
+  rm(index_outlier,index_zero)
+  
+  neutrophill_percentage=datas1$X30200.0.0
+  
+  platelet=datas1$X30080.0.0
+  index_outlier=which(platelet>600)
+  platelet[index_outlier]=600
+  rm(index_outlier)
+  
+  eosinophill=datas1$X30150.0.0
+  index_outlier=which(eosinophill>0.5)
+  eosinophill[index_outlier]=0.5
+  rm(index_outlier)
+  
+  eosinophil_percentage=datas1$X30210.0.0
+  index_outlier=which(eosinophil_percentage>8.5)
+  eosinophil_percentage[index_outlier]=8.5
+  rm(index_outlier)
+  
+  basophill=datas1$X30160.0.0
+  index_outlier=which(basophill>0.11)
+  basophill[index_outlier]=0.11
+  rm(index_outlier)
+  
+  basophil_percentage=datas1$X30220.0.0
+  index_outlier=which(basophil_percentage>1.5)
+  basophil_percentage[index_outlier]=1.5
+  rm(index_outlier)
+  
+  nlr=log(neutrophill/lymphocyte)
+  
+  inflammation_biomarker=data.frame(CRP=crp,Basophil=basophill,Basophil_percentage=basophil_percentage,Eosinophil=eosinophill,Eosinophil_percentage=eosinophil_percentage,
+                                    Leukocyte=leukocyte,Lymphocyte=lymphocyte,Lymphocyte_percentage=lymphocyte_percentage,
+                                    Monocyte=monocyte,Monocyte_percentage=monocyte_percentage,
+                                    Neutrophil=neutrophill,Neutrophil_percentage=neutrophill_percentage,NLR=nlr,
+                                    Platelet=platelet)
+  rm(crp,leukocyte,platelet,eosinophill,eosinophil_percentage,basophill,basophil_percentage,lymphocyte,lymphocyte_percentage,monocyte,monocyte_percentage,neutrophill,neutrophill_percentage,nlr)
+  rm(datas1)
